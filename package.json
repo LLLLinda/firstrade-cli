@@ -1,0 +1,19 @@
+{
+  "name": "firstrade-cli",
+  "version": "0.0.1",
+  "description": "An unofficial CLI tool for Firstrade",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "node ./test.js"
+  },
+  "bin": {
+    "firstrade": "./bin/firstrade"
+  },
+  "author": "linda",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "playwright": "^1.8.0"
+  }
+}

@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+'use strict'
+
+const msg = `
+usage: firstrade [command]
+
+command:
+    login
+
+argument:
+    --username=username             (required)
+    --password=password             (required)
+    --pin=pin                       (required)
+
+    `;
+const re = /(?:--(\w+)="?(\w+)"?)/;
+(() => {
+    const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
+    const argument = Object.fromEntries(argumentFromLine)
+    if (process.argv.includes('-h') || process.argv.includes('--help')) {
+        console.log(msg)
+    } else {
+        const Firstrade = require('../index.js')
+        const firstrade = new Firstrade()
+        let result = firstrade.login(argument)
+        console.log(result)
+    }
+
+})()
