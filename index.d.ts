@@ -1,8 +1,9 @@
 
 declare class Firstrade {
-    async login(credential: Firstrade.Credential): Firstrade.StorageSnapshot
-    async getBalance(credential: Firstrade.Credential): Firstrade.Balance
-    async getTradeHistory(credential: Firstrade.Credential): Firstrade.TradeRecord[]
+    login(credential: Firstrade.Credential): Promise<Firstrade.StorageSnapshot>
+    getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
+    getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
+    getPosition(credential: Firstrade.Credential): Promise<Firstrade.PositionRecord[]>
 }
 declare namespace Firstrade {
     type StorageSnapshot = {
@@ -36,6 +37,18 @@ declare namespace Firstrade {
         acctType: string
         price: number
         amount: number
+    }
+    type PositionRecord = {
+        symbol: string
+        quantity: number
+        last: number
+        "change($)": number
+        "change(%)": number
+        "market value": number
+        "unit cost": number
+        "total cost": number
+        "gain/loss($)": number
+        "gain/loss(%)": number
     }
 }
 
