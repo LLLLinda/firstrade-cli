@@ -49,6 +49,16 @@
                 amount: parseMoney(record[7]),
             }))
         }
+
+        getPosition = async (credential) => {
+            const { page, context, browser } = await open(credential);
+            await page.goto(PAGE.positionPage)
+            const headerElementHandle = await page.$$("#positiontable > thead > tr > th > a")
+            const cellElementHandle = await page.$$("#positiontable > tbody > tr > td")
+            const res = await parseTable(headerElementHandle, cellElementHandle);
+            await close(page, context, browser);
+            return res;
+        }
     }
 
     async function close(page, context, browser) {
@@ -83,7 +93,7 @@
         const browser = await chromium.launch(browserOptions);
         const context = await browser.newContext(browserContextOptions || {});
         const page = await context.newPage();
-        page.route('**/*.{png,jpg,jpeg,svg}', route => route.abort());
+        page.route('**/*.{png,jpg,jpeg,svg,gif,woff2}', route => route.abort());
         return { page, context, browser };
     }
 
@@ -119,8 +129,32 @@
         }));
         return ret;
     }
-
+    async function parseTable(headerElementHandle, cellElementHandle) {
+        const ret = [];
+        const headers = [];
+        for (let elementHandle of headerElementHandle) {
+            const innerHTML = await elementHandle.innerText();
+            headers.push(innerHTML);
+        }
+        for (let [i, elementHandle] of cellElementHandle.entries()) {
+            const stockID = Math.floor(i / headers.length);
+            const header = headers[i % headers.length].toLowerCase();
+            ret[stockID] = ret[stockID] || {};
+            switch (header) {
+                case "symbol":
+                    ret[stockID][header] = await (await elementHandle.$("a")).innerText();
+                    break;
+                case "":
+                    break;
+                default:
+                    ret[stockID][header] = parseMoney(await elementHandle.innerText());
+                    break;
+            }
+        }
+        return ret;
+    }
 })();
+
 function parseMoney(value) {
     if (null == value)
         return undefined
