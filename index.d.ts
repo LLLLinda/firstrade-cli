@@ -16,12 +16,13 @@ declare namespace Firstrade {
     } | StorageSnapshot;
     type Balance = {
         totalValue: number;
-        buyingPower: number;
-        cashBuyingPower: number;
+        buyingpower: number;
+        cashBuyingpower: number;
         settledFunds: number;
         nonMarginFunds: number;
         totalAccountValue: number;
         totalNetchangeValue: number;
+        totalNetchangePercentValue: number;
         cashMoneyLock: number;
         cashBalance: number;
         moneyMarketFund: number;
