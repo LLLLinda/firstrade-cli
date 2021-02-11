@@ -6,6 +6,7 @@ usage: firstrade [command]
 
 command:
     login
+    getBalance
 
 argument:
     --username=username             (required)
@@ -14,16 +15,16 @@ argument:
 
     `;
 const re = /(?:--(\w+)="?(\w+)"?)/;
-(() => {
+(async () => {
+    const command = process.argv.find(x => ["login", "getBalance"].includes(x))
     const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
     const argument = Object.fromEntries(argumentFromLine)
-    if (process.argv.includes('-h') || process.argv.includes('--help')) {
+    if (process.argv.length < 2 || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)
     } else {
         const Firstrade = require('../index.js')
         const firstrade = new Firstrade()
-        let result = firstrade.login(argument)
-        console.log(result)
+        let result = await firstrade[command](argument)
+        console.log(JSON.stringify(result))
     }
-
 })()
