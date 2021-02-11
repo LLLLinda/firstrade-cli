@@ -76,18 +76,21 @@
 
     async function open(credential) {
         const storageState = await exchangeCredential(credential);
+        return await initPage({ storageState })
+    }
+
+    async function initPage(browserContextOptions = null) {
         const browser = await chromium.launch(browserOptions);
-        const context = await browser.newContext({ storageState });
+        const context = await browser.newContext(browserContextOptions || {});
         const page = await context.newPage();
+        page.route('**/*.{png,jpg,jpeg,svg}', route => route.abort());
         return { page, context, browser };
     }
 
     async function exchangeCredential(credential) {
         if (credential.hasOwnProperty("cookies") && credential.hasOwnProperty("origins"))
             return credential
-        const browser = await chromium.launch(browserOptions);
-        const context = await browser.newContext();
-        const page = await context.newPage();
+        const { page, context, browser } = await initPage();
         await page.goto(PAGE.loginPage);
         await page.click('input[name="username"]');
         await page.fill('input[name="username"]', credential.username || process.env.FIRSTRADE_USERNAME);
