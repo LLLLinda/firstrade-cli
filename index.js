@@ -1,13 +1,67 @@
-'use strict'
-const { chromium } = require('playwright');
-const xml2js = require('xml2js');
-const { browserOptions, PAGE, PIN_NUMBER } = require("./const");
-const browserOptions = {
-    headless: process.env.DEV_HEADLESS_BROWSER != null ? process.env.DEV_HEADLESS_BROWSER === 'true' : true
-};
-module.exports = class Firstrade {
-    /** @param {{username,password,pin:number[]}} credential **/
-    login = async (credential) => {
+'use strict';
+(() => {
+    const { chromium } = require('playwright');
+    const xml2js = require('xml2js');
+    const { PAGE, PIN_NUMBER } = require("./const");
+    const browserOptions = {
+        headless: process.env.DEV_HEADLESS_BROWSER != null ? process.env.DEV_HEADLESS_BROWSER === 'true' : true
+    };
+    module.exports = class Firstrade {
+        /** @param {{username,password,pin:number[]}} credential **/
+        login = async (credential) => {
+            const storage = await exchangeCredential(credential);
+            return storage
+        }
+
+        /** @param {{username,password,pin:number[]}} credential **/
+        getBalance = async (credential) => {
+            const { page, context, browser } = await open(credential);
+            let [_, ret] = await Promise.all([page.goto(PAGE.accountBalancePage), getCurrentXml(page)]);
+            await this.close(page, context, browser);
+            return ret
+        }
+
+        getTradeHistory = async (credential) => {
+            const { page, context, browser } = await open(credential);
+            let [_, ret] = await Promise.all([page.goto(PAGE.historyPage), getAccountHistory(page)]);
+            await this.close(page, context, browser);
+            return ret
+        }
+
+
+        async close(page, context, browser) {
+            await page.close();
+            await context.close();
+            await browser.close();
+        }
+    }
+
+    /** @param {Page} page **/
+    async function getAccountHistory(page) {
+        const requestUrl = /https:\/\/invest.firstrade.com\/scripts\/achistory\/ac_io.php/g;
+        const jsonRes = await page.waitForResponse(response => requestUrl.test(response.url()) && response.status() === 200);
+        return await jsonRes.text();
+    }
+
+    /** @param {Page} page **/
+    async function getCurrentXml(page) {
+        const requestUrl = "https://invest.firstrade.com/cgi-bin/getxml";
+        const xmlRes = await page.waitForResponse(response => response.url() == requestUrl && response.status() === 200);
+        const res = await xmlRes.text();
+        return await parseXml(res);
+    }
+
+    async function open(credential) {
+        const storageState = await exchangeCredential(credential);
+        const browser = await chromium.launch(browserOptions);
+        const context = await browser.newContext({ storageState });
+        const page = await context.newPage();
+        return { page, context, browser };
+    }
+
+    async function exchangeCredential(credential) {
+        if (credential.hasOwnProperty("cookies") && credential.hasOwnProperty("origins"))
+            return credential
         const browser = await chromium.launch(browserOptions);
         const context = await browser.newContext();
         const page = await context.newPage();
@@ -26,36 +80,18 @@ module.exports = class Firstrade {
         await page.close();
         await context.close();
         await browser.close();
-        return storage
+        return storage;
     }
 
-    /** @param {{username,password,pin:number[]}} credential **/
-    getBalance = async (credential) => {
-        const storageState = await this.login(credential)
-        const browser = await chromium.launch(browserOptions);
-        const context = await browser.newContext({ storageState });
-        const page = await context.newPage();
-        let [_, ret] = await Promise.all([page.goto(PAGE.accountBalancePage), this.getCurrentXml(page)]);
-        await page.close();
-        await context.close();
-        await browser.close();
-        return ret
-    }
-
-
-    /** @param {Page} page **/
-    getCurrentXml = async (page) => {
-        var xmlParser = new xml2js.Parser();
-        const xmlRes = await page.waitForResponse(response => response.url() == "https://invest.firstrade.com/cgi-bin/getxml" && response.status() === 200);
-        const res = await xmlRes.text();
-        const ret = await new Promise((resolve, reject) =>
-            xmlParser.parseString(res, function (err, res) {
-                if (err)
-                    reject(err);
-                else
-                    resolve(res);
-            })
-        );
+    async function parseXml(res) {
+        const xmlParser = new xml2js.Parser();
+        const ret = await new Promise((resolve, reject) => xmlParser.parseString(res, function (err, res) {
+            if (err)
+                reject(err);
+            else
+                resolve(res);
+        }));
         return ret;
     }
-}
+
+})();

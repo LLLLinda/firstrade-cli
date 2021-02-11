@@ -7,16 +7,18 @@ usage: firstrade [command]
 command:
     login
     getBalance
+    getTradeHistory
 
 argument:
     --username=username             (required)
     --password=password             (required)
     --pin=pin                       (required)
-
+    --cookies=cookies               (optional)
+    --origins=origins               (optional)
     `;
 const re = /(?:--(\w+)="?(\w+)"?)/;
 (async () => {
-    const command = process.argv.find(x => ["login", "getBalance"].includes(x))
+    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory"].includes(x))
     const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
     const argument = Object.fromEntries(argumentFromLine)
     if (process.argv.length < 2 || process.argv.includes('-h') || process.argv.includes('--help')) {
