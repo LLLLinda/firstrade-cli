@@ -10,13 +10,14 @@ command:
     getTradeHistory
     getPosition
     placeOrder
+    crawlPosition
+    crawlTradeHistory
 
 argument:
     --username=username             (required)
     --password=password             (required)
     --pin=pin                       (required)
     --cookies=cookies               (optional)
-    --origins=origins               (optional)
     `;
     const re = /(?:--(\w+)="?(\w+)"?)/;
     const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "placeOrder"].includes(x))
@@ -30,4 +31,4 @@ argument:
         let result = await firstrade[command](argument)
         console.log(JSON.stringify(result))
     }
-})()0
+})()

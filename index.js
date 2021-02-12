@@ -8,39 +8,13 @@
         headless: process.env.DEV_HEADLESS_BROWSER == null ? true : parseBoolean(process.env.DEV_HEADLESS_BROWSER)
     };
     module.exports = class Firstrade {
-        /** @param {{username,password,pin:number[]}} credential **/
-        login = async (credential) => {
-            const storage = await exchangeCredential(credential);
-            return storage
-        }
 
-        placeOrder = async (params) => {
-            let credential
-            if (isStoredSession(params))
-                credential = {
-                    cookies: params.cookies,
-                    origins: params.origins
-                }
-            else
-                credential = {
-                    username: params.username,
-                    password: params.password,
-                    pin: params.pin,
-                }
-            const order = {
-                symbol: params.symbol,
-                quantity: params.quantity,
-                price: params.price
-            }
-            await placeOrder(credential, order);
-        }
+        login = async (credential) => await exchangeCredential(credential)
+        placeOrder = async (params) => await placeOrder(params, params)
 
-        /** @param {{username,password,pin:number[]}} credential **/
         getBalance = async (credential) => {
-            let cookie = credential.cookies
-            if (!isStoredSession(credential))
-                cookie = (await exchangeCredential(credential)).cookies
-            const res = await getCurrentXml(cookie)
+            let cookies = await renewCookies(credential);
+            const res = await getCurrentXml(cookies, "page=bal")
             const balance = res.response.balances[0]
             return {
                 totalValue: parseMoney(balance.total_value[0]),
@@ -58,6 +32,34 @@
         }
 
         getTradeHistory = async (credential) => {
+            let cookies = await renewCookies(credential);
+            const res = await getCurrentXml(cookies)
+            return res.response.orderstatus.map(record => ({
+                transaction: record.trantype[0],
+                quantity: parseMoney(record.quantity[0]),
+                duration: record.duration[0],
+                status: record.status[0],
+                statusCode: record.status_code[0],
+                price: parseMoney(record.price[0]),
+            }))
+        }
+
+        getPosition = async (credential) => {
+            let cookies = await renewCookies(credential);
+            const res = await getCurrentXml(cookies, "page=pos")
+            return res.response.position.map(record => ({
+                symbol: record.symbol[0],
+                quantity: parseMoney(record.quantity[0]),
+                price: parseMoney(record.price[0]),
+                color: record.color[0],
+                change: parseMoney(record.change[0]),
+                changepercent: parseMoney(record.changepercent[0]),
+                vol: parseMoney(record.vol[0]),
+                type: record.type[0],
+            }))
+        }
+
+        crawlTradeHistory = async (credential) => {
             const { page, context, browser } = await open(credential);
             let [_, res] = await Promise.all([page.goto(PAGE.historyPage), getAccountHistory(page)]);
             await close(page, context, browser);
@@ -73,7 +75,7 @@
             }))
         }
 
-        getPosition = async (credential) => {
+        crawlPosition = async (credential) => {
             const { page, context, browser } = await open(credential);
             await page.goto(PAGE.positionPage)
             const headerElementHandle = await page.$$("#positiontable > thead > tr > th > a")
@@ -121,8 +123,8 @@
         return JSON.parse(ret || "{}");
     }
 
-    /** @param {Object[]} cookies @returns {Promise<{response:{balances:{[key:string]:string[]}[], orderStatus, position, watchlist, list, timestamp}}>}**/
-    async function getCurrentXml(cookies) {
+    /** @param {Object[]} cookies @returns {Promise<{response:{balances:{[key:string]:string[]}[], orderstatus, position, watchlist, list, timestamp}}>}**/
+    async function getCurrentXml(cookies, body = "page=bal,pos,watchlist,all") {
         const cookieStr = cookies.map(cookie => `${cookie.name}=${cookie.value};`);
         const headers = new fetch.Headers();
         headers.append("Connection", "keep-alive");
@@ -140,7 +142,6 @@
         headers.append("Accept-Language", "en,ja;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh;q=0.6,zh-TW;q=0.5");
         headers.append("Cookie", cookieStr.join(' '));
         headers.append("Content-Type", "text/plain");
-        const body = "page=bal,pos,watchlist,all";
         const requestOptions = {
             method: 'POST',
             headers,
@@ -154,8 +155,9 @@
     }
 
     async function open(credential) {
-        const storageState = await exchangeCredential(credential);
-        return await initPage({ storageState })
+        const cookies = await exchangeCredential(credential);
+        const origins = [{ origin: 'https://invest.firstrade.com', localStorage: [] }]
+        return await initPage({ storageState: { cookies, origins } })
     }
 
     async function initPage(browserContextOptions = null) {
@@ -166,7 +168,7 @@
         return { page, context, browser };
     }
 
-    /**  @param {*} credential @returns {Promise<{cookies, origins}>}*/
+    /**  @param {*} credential @returns {Promise<Object[]>}*/
     async function exchangeCredential(credential) {
         if (isStoredSession(credential))
             return credential
@@ -180,24 +182,12 @@
         await page.click('div[id="submit"]');
         // Save storage state and store as an env variable
         const storage = await context.storageState();
-        process.env.STORAGE = JSON.stringify(storage);
         await page.close();
         await context.close();
         await browser.close();
-        return storage;
+        return storage.cookies;
     }
 
-    async function parseXml(res) {
-        const xmlParser = new xml2js.Parser();
-        const ret = await new Promise((resolve, reject) => xmlParser.parseString(res, function (err, res) {
-            if (err)
-                reject(err);
-            else
-                resolve(res);
-        }));
-        return ret;
-    }
-    
     async function parseTable(headerElementHandle, cellElementHandle) {
         const ret = [];
         const headers = [];
@@ -222,14 +212,35 @@
         }
         return ret;
     }
+
+    async function parseXml(res) {
+        const xmlParser = new xml2js.Parser();
+        const ret = await new Promise((resolve, reject) => xmlParser.parseString(res, function (err, res) {
+            if (err)
+                reject(err);
+            else
+                resolve(res);
+        }));
+        return ret;
+    }
+
+    async function renewCookies(credential) {
+        let cookies;
+        if (isStoredSession(credential))
+            cookies = credential;
+        else
+            cookies = await exchangeCredential(credential)
+        return cookies;
+    }
 })();
+
 
 function parseBoolean(string) {
     return string != null ? string === 'true' : false;
 }
 
 function isStoredSession(credential) {
-    return credential.hasOwnProperty("cookies") && credential.hasOwnProperty("origins");
+    return credential.length > 0 && credential[0].hasOwnProperty("name") && credential[0].hasOwnProperty("value")
 }
 
 function parseMoney(value) {

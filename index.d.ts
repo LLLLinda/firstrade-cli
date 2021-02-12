@@ -1,16 +1,18 @@
 
 declare class Firstrade {
-    login(credential: Firstrade.Credential): Promise<Firstrade.StorageSnapshot | Firstrade.LoginReason>
+    login(credential: Firstrade.Credential): Promise<Firstrade.Cookie | Firstrade.LoginReason>
     getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
-    getPosition(credential: Firstrade.Credential): Promise<Firstrade.PositionRecord[]>
+    getPosition(credential: Firstrade.Credential): Promise<Firstrade.Position[]>
+    crawlTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.DetailedTradeRecord[]>
+    crawlPosition(credential: Firstrade.Credential): Promise<Firstrade.DetailedPosition[]>
     placeOrder(params: Firstrade.Credential & Firstrade.Order): Promise<void>
 }
 declare namespace Firstrade {
-    type StorageSnapshot = {
-        cookies: Object[];
-        origins: Object[];
-    };
+    type Cookie = {
+        name: string
+        value: string
+    }
     type Order = {
         symbol: string
         quantity: number
@@ -20,7 +22,7 @@ declare namespace Firstrade {
         username: string;
         password: string;
         pin: string;
-    } | StorageSnapshot;
+    } | Cookie[];
     type Balance = {
         totalValue: number;
         buyingpower: number;
@@ -35,6 +37,14 @@ declare namespace Firstrade {
         moneyMarketFund: number;
     }
     type TradeRecord = {
+        transaction: string
+        duration: string
+        status: string
+        statusCode: string
+        quantity: number
+        price: number
+    }
+    type DetailedTradeRecord = {
         date: Date
         transaction: string | "DEPOSIT" | "Bought"
         quantity: number
@@ -44,7 +54,17 @@ declare namespace Firstrade {
         price: number
         amount: number
     }
-    type PositionRecord = {
+    type Position = {
+        symbol: string
+        quantity: number
+        price: number
+        color: string
+        change: number
+        changepercent: number
+        vol: number
+        type: string
+    }
+    type DetailedPosition = {
         symbol: string
         quantity: number
         last: number
