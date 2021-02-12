@@ -20,10 +20,10 @@ argument:
     --cookies=cookies               (optional)
     `;
     const re = /(?:--(\w+)="?(\w+)"?)/;
-    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "placeOrder"].includes(x))
+    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "placeOrder", "crawlPosition", "crawlTradeHistory"].includes(x))
     const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
     const argument = Object.fromEntries(argumentFromLine)
-    if (process.argv.length < 2 + 3 || process.argv.includes('-h') || process.argv.includes('--help')) {
+    if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)
     } else {
         const Firstrade = require('../index.js')
