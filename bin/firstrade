@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-'use strict'
-
-const msg = `
+(async () => {
+    'use strict';
+    const msg = `
 usage: firstrade [command]
 
 command:
@@ -9,6 +9,7 @@ command:
     getBalance
     getTradeHistory
     getPosition
+    placeOrder
 
 argument:
     --username=username             (required)
@@ -17,9 +18,8 @@ argument:
     --cookies=cookies               (optional)
     --origins=origins               (optional)
     `;
-const re = /(?:--(\w+)="?(\w+)"?)/;
-(async () => {
-    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition"].includes(x))
+    const re = /(?:--(\w+)="?(\w+)"?)/;
+    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "placeOrder"].includes(x))
     const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
     const argument = Object.fromEntries(argumentFromLine)
     if (process.argv.length < 2 + 3 || process.argv.includes('-h') || process.argv.includes('--help')) {
@@ -30,4 +30,4 @@ const re = /(?:--(\w+)="?(\w+)"?)/;
         let result = await firstrade[command](argument)
         console.log(JSON.stringify(result))
     }
-})()
+})()0

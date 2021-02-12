@@ -4,12 +4,18 @@ declare class Firstrade {
     getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
     getPosition(credential: Firstrade.Credential): Promise<Firstrade.PositionRecord[]>
+    placeOrder(params: Firstrade.Credential & Firstrade.Order): Promise<void>
 }
 declare namespace Firstrade {
     type StorageSnapshot = {
         cookies: Object[];
         origins: Object[];
     };
+    type Order = {
+        symbol: string
+        quantity: number
+        price?: number
+    }
     type Credential = {
         username: string;
         password: string;

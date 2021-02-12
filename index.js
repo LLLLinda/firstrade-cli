@@ -4,13 +4,34 @@
     const xml2js = require('xml2js');
     const { PAGE, PIN_NUMBER } = require("./const");
     const browserOptions = {
-        headless: process.env.DEV_HEADLESS_BROWSER != null ? process.env.DEV_HEADLESS_BROWSER === 'true' : true
+        headless: process.env.DEV_HEADLESS_BROWSER == null ? true : parseBoolean(process.env.DEV_HEADLESS_BROWSER)
     };
     module.exports = class Firstrade {
         /** @param {{username,password,pin:number[]}} credential **/
         login = async (credential) => {
             const storage = await exchangeCredential(credential);
             return storage
+        }
+
+        placeOrder = async (params) => {
+            let credential
+            if (isStoredSession(params))
+                credential = {
+                    cookies: params.cookies,
+                    origins: params.origins
+                }
+            else
+                credential = {
+                    username: params.username,
+                    password: params.password,
+                    pin: params.pin,
+                }
+            const order = {
+                symbol: params.symbol,
+                quantity: params.quantity,
+                price: params.price
+            }
+            await placeOrder(credential, order);
         }
 
         /** @param {{username,password,pin:number[]}} credential **/
@@ -59,6 +80,29 @@
             await close(page, context, browser);
             return res;
         }
+
+    }
+
+    async function placeOrder(credential, order) {
+        const { page, context, browser } = await open(credential);
+        await page.goto(PAGE.accountBalancePage);
+        await page.fill('input[name="quoteSymbol"]', order.symbol);
+        await page.click('text="Go"');
+        await page.click("#showpacel > div.top > div.right > a");
+        if (order.price)
+            await page.fill('input[name="limitPrice"]', order.price + '');
+        else
+            await page.click("#quotedata > table.odbq > tbody > tr.dat > td:nth-child(4) > a");
+        await page.fill('input[name="quantity"]', order.quantity + '');
+        await page.click('input[name="transactionType"]#transactionType_Buy');
+        await page.click('text="Preview"');
+        if (parseBoolean(process.env.DEV_FORBIT_TRADE)) {
+            console.log("Interrupted Transactions")
+            await close(page, context, browser);
+            return
+        }
+        await page.click('div[id="previe_orderbar_main"] >> text="Send Order"');
+        await close(page, context, browser);
     }
 
     async function close(page, context, browser) {
@@ -98,13 +142,11 @@
     }
 
     async function exchangeCredential(credential) {
-        if (credential.hasOwnProperty("cookies") && credential.hasOwnProperty("origins"))
+        if (isStoredSession(credential))
             return credential
         const { page, context, browser } = await initPage();
         await page.goto(PAGE.loginPage);
-        await page.click('input[name="username"]');
         await page.fill('input[name="username"]', credential.username || process.env.FIRSTRADE_USERNAME);
-        await page.click('input[name="password"]');
         await page.fill('input[name="password"]', credential.password || process.env.FIRSTRADE_PASSWORD);
         await page.click('input[type="submit"]');
         for (let num of (credential.pin || process.env.FIRSTRADE_PIN))
@@ -154,6 +196,14 @@
         return ret;
     }
 })();
+
+function parseBoolean(string) {
+    return string != null ? string === 'true' : false;
+}
+
+function isStoredSession(credential) {
+    return credential.hasOwnProperty("cookies") && credential.hasOwnProperty("origins");
+}
 
 function parseMoney(value) {
     if (null == value)
