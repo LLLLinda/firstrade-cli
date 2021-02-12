@@ -1,6 +1,6 @@
 
 declare class Firstrade {
-    login(credential: Firstrade.Credential): Promise<Firstrade.StorageSnapshot>
+    login(credential: Firstrade.Credential): Promise<Firstrade.StorageSnapshot | Firstrade.LoginReason>
     getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
     getPosition(credential: Firstrade.Credential): Promise<Firstrade.PositionRecord[]>
@@ -36,8 +36,8 @@ declare namespace Firstrade {
     }
     type TradeRecord = {
         date: Date
-        transaction: string | "DEPOSIT"
-        quantity: string
+        transaction: string | "DEPOSIT" | "Bought"
+        quantity: number
         description: string
         symbol: string
         acctType: string
@@ -55,6 +55,15 @@ declare namespace Firstrade {
         "total cost": number
         "gain/loss($)": number
         "gain/loss(%)": number
+    }
+    enum LoginReason {
+        "This user has logged in from another computer",
+        "Session has timed out",
+        "Trader has already been disabled",
+        "Trader Id invalid",
+        "Please login first",
+        "Trader data not complete, please try later",
+        "Invalid session. Please log in again."
     }
 }
 

@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+    const fetch = require("node-fetch");
     const { chromium } = require('playwright');
     const xml2js = require('xml2js');
     const { PAGE, PIN_NUMBER } = require("./const");
@@ -36,9 +37,10 @@
 
         /** @param {{username,password,pin:number[]}} credential **/
         getBalance = async (credential) => {
-            const { page, context, browser } = await open(credential);
-            let [_, res] = await Promise.all([page.goto(PAGE.accountBalancePage), getCurrentXml(page)]);
-            await close(page, context, browser);
+            let cookie = credential.cookies
+            if (!isStoredSession(credential))
+                cookie = (await exchangeCredential(credential)).cookies
+            const res = await getCurrentXml(cookie)
             const balance = res.response.balances[0]
             return {
                 totalValue: parseMoney(balance.total_value[0]),
@@ -119,13 +121,36 @@
         return JSON.parse(ret || "{}");
     }
 
-    /** @param {Page} page  @returns {{response:{balances:{[key:string]:string[]}[], timestamp}}}**/
-    async function getCurrentXml(page) {
-        const requestUrl = "https://invest.firstrade.com/cgi-bin/getxml";
-        const requestResponse = await page.waitForResponse(response => response.url() == requestUrl && response.status() === 200);
-        const requestBody = await requestResponse.text();
-        const res = await parseXml(requestBody);
-        return res;
+    /** @param {Object[]} cookies @returns {Promise<{response:{balances:{[key:string]:string[]}[], orderStatus, position, watchlist, list, timestamp}}>}**/
+    async function getCurrentXml(cookies) {
+        const cookieStr = cookies.map(cookie => `${cookie.name}=${cookie.value};`);
+        const headers = new fetch.Headers();
+        headers.append("Connection", "keep-alive");
+        headers.append("Pragma", "no-cache");
+        headers.append("Cache-Control", "no-cache");
+        headers.append("Accept", "*/*");
+        headers.append("X-Requested-With", "XMLHttpRequest");
+        headers.append("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
+        headers.append("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        headers.append("Origin", "https://invest.firstrade.com");
+        headers.append("Sec-Fetch-Site", "same-origin");
+        headers.append("Sec-Fetch-Mode", "cors");
+        headers.append("Sec-Fetch-Dest", "empty");
+        headers.append("Referer", "https://invest.firstrade.com/cgi-bin/main");
+        headers.append("Accept-Language", "en,ja;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh;q=0.6,zh-TW;q=0.5");
+        headers.append("Cookie", cookieStr.join(' '));
+        headers.append("Content-Type", "text/plain");
+        const body = "page=bal,pos,watchlist,all";
+        const requestOptions = {
+            method: 'POST',
+            headers,
+            body,
+            redirect: 'follow'
+        };
+        const requestResponse = await fetch(PAGE.XmlApi, requestOptions)
+        const respondBody = await requestResponse.text();
+        const ret = await parseXml(respondBody);
+        return ret;
     }
 
     async function open(credential) {
@@ -141,6 +166,7 @@
         return { page, context, browser };
     }
 
+    /**  @param {*} credential @returns {Promise<{cookies, origins}>}*/
     async function exchangeCredential(credential) {
         if (isStoredSession(credential))
             return credential
@@ -171,6 +197,7 @@
         }));
         return ret;
     }
+    
     async function parseTable(headerElementHandle, cellElementHandle) {
         const ret = [];
         const headers = [];
