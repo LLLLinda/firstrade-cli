@@ -13,7 +13,7 @@ The CLI operates your Firstrade account.
 To get a global install of the latest CLI release:
 
 ```shell
-npm install -g firstrade
+npm install -g firstrade-cli
 ```
 
 Then the following commands can be run globally:
