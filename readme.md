@@ -1,5 +1,9 @@
 # Firstrade CLI tool
 
+> DISCLAIMER: We disclaim any and all responsibility for losses incurred through the use of this information. By using this information, you are deemed to have accepted these conditions of use, and you agree NOT to sue us.
+>
+> CLARIFICATION: The above disclaimer states as plainly as possible that if you decide to make use of any of the information contained within this document that you do so at your own risk.
+
 ### An unofficial CLI tool for Firstrade
 
 The CLI operates your Firstrade account.
@@ -59,4 +63,4 @@ This will trigger a breakpoint as the CLI starts up. You can connect to this usi
 ## Testing
 
 1. Create your environment file from the template
-1. Run: `npm test`
+2. Run: `npm test`
