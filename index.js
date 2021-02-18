@@ -102,13 +102,13 @@
         return ret;
     }
 
-    /** @returns {axios.AxiosInstance | string}     */
+    /** @returns {Promise<axios.AxiosInstance | string>}     */
     async function sendLoginRequest(credential) {
         const config = {
             method: 'post',
             url: URL.loginApi,
             headers: HEADERS.loginApi(),
-            data: DATA.loginApi(credential),
+            data: qs.stringify(DATA.loginApi(credential)),
             jar: true,
             withCredentials: true,
         };

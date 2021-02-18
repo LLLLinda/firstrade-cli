@@ -29,9 +29,6 @@ command:
     getBalance
     getTradeHistory
     getPosition
-    placeOrder
-    crawlPosition
-    crawlTradeHistory
 
 argument:
     --username=username             (required)
@@ -47,8 +44,6 @@ argument:
 * firstrade getBalance
 * firstrade getTradeHistory
 * firstrade getPosition
-* firstrade crawlPosition
-* firstrade crawlTradeHistory
 
 ## Debugging
 
