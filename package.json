@@ -1,6 +1,6 @@
 {
   "name": "firstrade-cli",
-  "version": "0.5.0",
+  "version": "0.5.6",
   "description": "An unofficial CLI tool for Firstrade",
   "main": "index.js",
   "types": "index.d.ts",
@@ -23,6 +23,7 @@
     "axios": "^0.21.1",
     "axios-cookiejar-support": "^1.0.1",
     "qs": "^6.9.6",
+    "tough-cookie": "^4.0.0",
     "xml2js": "^0.4.23"
   },
   "keywords": [

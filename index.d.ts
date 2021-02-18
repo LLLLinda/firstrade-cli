@@ -7,7 +7,7 @@ declare class Firstrade {
 }
 declare namespace Firstrade {
     type Cookie = {
-        name: string
+        key: string
         value: string
     }
     type Order = {
