@@ -1,6 +1,5 @@
 'use strict';
 (() => {
-    require('dotenv').config();
     exports.URL = {
         xmlApi: "https://invest.firstrade.com/cgi-bin/getxml",
         loginApi: 'https://invest.firstrade.com/cgi-bin/login',

@@ -1,5 +1,7 @@
 (async () => {
     'use strict'
+    require('dotenv').config();
+
     const Firstrade = require('./index.js')
     const firstrade = new Firstrade()
 

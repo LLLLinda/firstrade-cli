@@ -1,6 +1,6 @@
 {
   "name": "firstrade-cli",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "description": "An unofficial CLI tool for Firstrade",
   "main": "index.js",
   "types": "index.d.ts",
