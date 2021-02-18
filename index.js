@@ -1,20 +1,19 @@
 'use strict';
+
 (() => {
-    const fetch = require("node-fetch");
-    const { chromium } = require('playwright');
     const xml2js = require('xml2js');
-    const { PAGE, PIN_NUMBER } = require("./const");
-    const browserOptions = {
-        headless: process.env.DEV_HEADLESS_BROWSER == null ? true : parseBoolean(process.env.DEV_HEADLESS_BROWSER)
-    };
+    const axios = require('axios');
+    const qs = require('qs');
+    const { URL, HEADERS, DATA } = require("./const");
+    const axiosCookieJarSupport = require('axios-cookiejar-support').default;
+    axiosCookieJarSupport(axios);
     module.exports = class Firstrade {
-
         login = async (credential) => await exchangeCredential(credential)
-        placeOrder = async (params) => await placeOrder(params, params)
-
         getBalance = async (credential) => {
             let cookies = await renewCookies(credential);
             const res = await getCurrentXml(cookies, "page=bal")
+            if (!res.response.balances)
+                return []
             const balance = res.response.balances[0]
             return {
                 totalValue: parseMoney(balance.total_value[0]),
@@ -30,10 +29,11 @@
                 moneyMarketFund: parseMoney(balance.money_market_fund[0]),
             }
         }
-
         getTradeHistory = async (credential) => {
             let cookies = await renewCookies(credential);
             const res = await getCurrentXml(cookies)
+            if (!res.response.orderstatus)
+                return []
             return res.response.orderstatus.map(record => ({
                 transaction: record.trantype[0],
                 quantity: parseMoney(record.quantity[0]),
@@ -43,10 +43,11 @@
                 price: parseMoney(record.price[0]),
             }))
         }
-
         getPosition = async (credential) => {
             let cookies = await renewCookies(credential);
             const res = await getCurrentXml(cookies, "page=pos")
+            if (!res.response.position)
+                return []
             return res.response.position.map(record => ({
                 symbol: record.symbol[0],
                 quantity: parseMoney(record.quantity[0]),
@@ -58,159 +59,27 @@
                 type: record.type[0],
             }))
         }
-
-        crawlTradeHistory = async (credential) => {
-            const { page, context, browser } = await open(credential);
-            let [_, res] = await Promise.all([page.goto(PAGE.historyPage), getAccountHistory(page)]);
-            await close(page, context, browser);
-            return res.aaData.filter(x => x.length > 7).map(record => ({
-                date: new Date(record[0]),
-                transaction: record[1],
-                quantity: record[2],
-                description: record[3],
-                symbol: record[4],
-                acctType: record[5],
-                price: parseMoney(record[6]),
-                amount: parseMoney(record[7]),
-            }))
-        }
-
-        crawlPosition = async (credential) => {
-            const { page, context, browser } = await open(credential);
-            await page.goto(PAGE.positionPage)
-            const headerElementHandle = await page.$$("#positiontable > thead > tr > th > a")
-            const cellElementHandle = await page.$$("#positiontable > tbody > tr > td")
-            const res = await parseTable(headerElementHandle, cellElementHandle);
-            await close(page, context, browser);
-            return res;
-        }
-
-    }
-
-    async function placeOrder(credential, order) {
-        const { page, context, browser } = await open(credential);
-        await page.goto(PAGE.accountBalancePage);
-        await page.fill('input[name="quoteSymbol"]', order.symbol);
-        await page.click('text="Go"');
-        await page.click("#showpacel > div.top > div.right > a");
-        if (order.price)
-            await page.fill('input[name="limitPrice"]', order.price + '');
-        else
-            await page.click("#quotedata > table.odbq > tbody > tr.dat > td:nth-child(4) > a");
-        await page.fill('input[name="quantity"]', order.quantity + '');
-        await page.click('input[name="transactionType"]#transactionType_Buy');
-        await page.click('text="Preview"');
-        if (parseBoolean(process.env.DEV_FORBIT_TRADE)) {
-            console.log("Interrupted Transactions")
-            await close(page, context, browser);
-            return
-        }
-        await page.click('div[id="previe_orderbar_main"] >> text="Send Order"');
-        await close(page, context, browser);
-    }
-
-    async function close(page, context, browser) {
-        await page.close();
-        await context.close();
-        await browser.close();
-    }
-
-    /** @param {Page} page @returns {{sEcho, iTotalRecords, iTotalDisplayRecords, aaData:Object[Object[]]]}} **/
-    async function getAccountHistory(page) {
-        const requestUrl = /https:\/\/invest.firstrade.com\/scripts\/achistory\/ac_io.php/g;
-        const jsonRes = await page.waitForResponse(response => requestUrl.test(response.url()) && response.status() === 200);
-        const ret = await jsonRes.text();
-        return JSON.parse(ret || "{}");
     }
 
     /** @param {Object[]} cookies @returns {Promise<{response:{balances:{[key:string]:string[]}[], orderstatus, position, watchlist, list, timestamp}}>}**/
-    async function getCurrentXml(cookies, body = "page=bal,pos,watchlist,all") {
-        const cookieStr = cookies.map(cookie => `${cookie.name}=${cookie.value};`);
-        const headers = new fetch.Headers();
-        headers.append("Connection", "keep-alive");
-        headers.append("Pragma", "no-cache");
-        headers.append("Cache-Control", "no-cache");
-        headers.append("Accept", "*/*");
-        headers.append("X-Requested-With", "XMLHttpRequest");
-        headers.append("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36");
-        headers.append("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        headers.append("Origin", "https://invest.firstrade.com");
-        headers.append("Sec-Fetch-Site", "same-origin");
-        headers.append("Sec-Fetch-Mode", "cors");
-        headers.append("Sec-Fetch-Dest", "empty");
-        headers.append("Referer", "https://invest.firstrade.com/cgi-bin/main");
-        headers.append("Accept-Language", "en,ja;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh;q=0.6,zh-TW;q=0.5");
-        headers.append("Cookie", cookieStr.join(' '));
-        headers.append("Content-Type", "text/plain");
-        const requestOptions = {
-            method: 'POST',
-            headers,
-            body,
-            redirect: 'follow'
+    async function getCurrentXml(cookies, data = DATA.xmlApi()) {
+        const cookieStr = cookies.map(cookie => `${cookie.key}=${cookie.value};`);
+        const config = {
+            method: 'post',
+            url: URL.xmlApi,
+            headers: HEADERS.xmlApi(cookieStr.join(' ')),
+            data,
+            withCredentials: true,
         };
-        const requestResponse = await fetch(PAGE.XmlApi, requestOptions)
-        const respondBody = await requestResponse.text();
-        const ret = await parseXml(respondBody);
-        return ret;
-    }
-
-    async function open(credential) {
-        const cookies = await exchangeCredential(credential);
-        const origins = [{ origin: 'https://invest.firstrade.com', localStorage: [] }]
-        return await initPage({ storageState: { cookies, origins } })
-    }
-
-    async function initPage(browserContextOptions = null) {
-        const browser = await chromium.launch(browserOptions);
-        const context = await browser.newContext(browserContextOptions || {});
-        const page = await context.newPage();
-        page.route('**/*.{png,jpg,jpeg,svg,gif,woff2}', route => route.abort());
-        return { page, context, browser };
+        const req = await axios(config)
+        return await parseXml(req.data);
     }
 
     /**  @param {*} credential @returns {Promise<Object[]>}*/
     async function exchangeCredential(credential) {
-        if (isStoredSession(credential))
-            return credential
-        const { page, context, browser } = await initPage();
-        await page.goto(PAGE.loginPage);
-        await page.fill('input[name="username"]', credential.username || process.env.FIRSTRADE_USERNAME);
-        await page.fill('input[name="password"]', credential.password || process.env.FIRSTRADE_PASSWORD);
-        await page.click('input[type="submit"]');
-        for (let num of (credential.pin || process.env.FIRSTRADE_PIN))
-            await page.click(`div[id="${PIN_NUMBER[num]}"]`);
-        await page.click('div[id="submit"]');
-        // Save storage state and store as an env variable
-        const storage = await context.storageState();
-        await page.close();
-        await context.close();
-        await browser.close();
-        return storage.cookies;
-    }
-
-    async function parseTable(headerElementHandle, cellElementHandle) {
-        const ret = [];
-        const headers = [];
-        for (let elementHandle of headerElementHandle) {
-            const innerHTML = await elementHandle.innerText();
-            headers.push(innerHTML);
-        }
-        for (let [i, elementHandle] of cellElementHandle.entries()) {
-            const stockID = Math.floor(i / headers.length);
-            const header = headers[i % headers.length].toLowerCase();
-            ret[stockID] = ret[stockID] || {};
-            switch (header) {
-                case "symbol":
-                    ret[stockID][header] = await (await elementHandle.$("a")).innerText();
-                    break;
-                case "":
-                    break;
-                default:
-                    ret[stockID][header] = parseMoney(await elementHandle.innerText());
-                    break;
-            }
-        }
-        return ret;
+        const loginReq = await sendLoginRequest(credential);
+        const request = await sendEnterPinRequest(credential, loginReq.config.jar);
+        return removeExcess(request.config.jar.store.idx["invest.firstrade.com"]["/"])
     }
 
     async function parseXml(res) {
@@ -225,22 +94,76 @@
     }
 
     async function renewCookies(credential) {
-        let cookies;
+        let ret;
         if (isStoredSession(credential))
-            cookies = credential;
+            ret = credential;
         else
-            cookies = await exchangeCredential(credential)
-        return cookies;
+            ret = await exchangeCredential(credential)
+        return ret;
     }
+
+    /** @returns {axios.AxiosInstance | string}     */
+    async function sendLoginRequest(credential) {
+        const config = {
+            method: 'post',
+            url: URL.loginApi,
+            headers: HEADERS.loginApi(),
+            data: DATA.loginApi(credential),
+            jar: true,
+            withCredentials: true,
+        };
+        const req = await axios(config);
+        const hasError = isAuthError(req);
+        if (hasError.result)
+            throw hasError
+        if (req.config.url != URL.enterPinApi)
+            throw 'unknown';
+        return req;
+    }
+
+    async function sendEnterPinRequest(credential, cookieJar) {
+        const config = {
+            method: 'post',
+            url: URL.enterPinApi,
+            headers: HEADERS.enterPinApi(),
+            data: qs.stringify(DATA.enterPinApi(credential)),
+            withCredentials: true,
+            jar: cookieJar,
+        };
+        return await axios(config);
+    }
+
 })();
 
+function removeExcess(cookies) {
+    return Object.values(cookies).map(cookie => ({ key: cookie.key, value: cookie.value }));
+}
+
+/** @returns {{result: false|1|2|3|4|5|6, desc}} */
+function isAuthError(req) {
+    const re = /<script>window.location = \"\/cgi-bin\/login\?reason=([0-9])\"<\/script>/g;
+    const responseText = req.data;
+    const ret = re.test(responseText);
+    if (!ret)
+        return { result: ret }
+    const failedReason = parseInt(/[0-9]/.exec(responseText)[0]);
+    return {
+        result: failedReason + 1, desc: ["This user has logged in from another computer",
+            "Session has timed out",
+            "Trader has already been disabled",
+            "Trader Id invalid",
+            "Please login first",
+            "Trader data not complete, please try later",
+            "Invalid session. Please log in again."][failedReason]
+    }
+}
 
 function parseBoolean(string) {
     return string != null ? string === 'true' : false;
 }
 
 function isStoredSession(credential) {
-    return credential.length > 0 && credential[0].hasOwnProperty("name") && credential[0].hasOwnProperty("value")
+    return credential.length > 0 && credential[0].hasOwnProperty("key") && credential[0].hasOwnProperty("value")
 }
 
 function parseMoney(value) {

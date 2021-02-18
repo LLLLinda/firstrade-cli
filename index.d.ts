@@ -4,9 +4,6 @@ declare class Firstrade {
     getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
     getPosition(credential: Firstrade.Credential): Promise<Firstrade.Position[]>
-    crawlTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.DetailedTradeRecord[]>
-    crawlPosition(credential: Firstrade.Credential): Promise<Firstrade.DetailedPosition[]>
-    placeOrder(params: Firstrade.Credential & Firstrade.Order): Promise<void>
 }
 declare namespace Firstrade {
     type Cookie = {
@@ -44,16 +41,6 @@ declare namespace Firstrade {
         quantity: number
         price: number
     }
-    type DetailedTradeRecord = {
-        date: Date
-        transaction: string | "DEPOSIT" | "Bought"
-        quantity: number
-        description: string
-        symbol: string
-        acctType: string
-        price: number
-        amount: number
-    }
     type Position = {
         symbol: string
         quantity: number
@@ -63,18 +50,6 @@ declare namespace Firstrade {
         changepercent: number
         vol: number
         type: string
-    }
-    type DetailedPosition = {
-        symbol: string
-        quantity: number
-        last: number
-        "change($)": number
-        "change(%)": number
-        "market value": number
-        "unit cost": number
-        "total cost": number
-        "gain/loss($)": number
-        "gain/loss(%)": number
     }
     enum LoginReason {
         "This user has logged in from another computer",
