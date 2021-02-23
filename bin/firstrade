@@ -23,8 +23,7 @@ argument:
     if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)
     } else {
-        const Firstrade = require('../index.js')
-        const firstrade = new Firstrade()
+        const firstrade = require('../index.js')
         let result = await firstrade[command](argument)
         console.log(JSON.stringify(result))
     }

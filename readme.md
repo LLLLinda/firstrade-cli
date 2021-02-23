@@ -1,18 +1,18 @@
 # Firstrade CLI tool
-
+# firstrade-cli [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 > DISCLAIMER: We disclaim any and all responsibility for losses incurred through the use of this information. By using this information, you are deemed to have accepted these conditions of use, and you agree NOT to sue us.
 >
 > CLARIFICATION: The above disclaimer states as plainly as possible that if you decide to make use of any of the information contained within this document that you do so at your own risk.
 
 ### An unofficial CLI tool for Firstrade
 
-The CLI operates your Firstrade account.
+> An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.
 
 ## Installation and Usage
 
 To get a global install of the latest CLI release:
 
-```shell
+```sh
 npm install -g firstrade-cli
 ```
 
@@ -45,6 +45,14 @@ argument:
 * firstrade getTradeHistory
 * firstrade getPosition
 
+
+## Usage
+
+```js
+const firstradeCli = require('firstrade-cli');
+
+firstradeCli('Rainbow');
+```
 ## Debugging
 
 To debug an invocation of the CLI, build and install the CLI, then run the desired `firstrade` command as:
@@ -59,3 +67,18 @@ This will trigger a breakpoint as the CLI starts up. You can connect to this usi
 
 1. Create your environment file from the template
 2. Run: `npm test`
+
+## License
+
+Apache-2.0 ? [LLLLinda]()
+
+
+[npm-image]: https://badge.fury.io/js/firstrade-cli.svg
+[npm-url]: https://npmjs.org/package/firstrade-cli
+[travis-image]: https://travis-ci.com/LLLLinda/firstrade-cli.svg?branch=master
+[travis-url]: https://travis-ci.com/LLLLinda/firstrade-cli
+[daviddm-image]: https://david-dm.org/LLLLinda/firstrade-cli.svg?theme=shields.io
+[daviddm-url]: https://david-dm.org/LLLLinda/firstrade-cli
+[coveralls-image]: https://coveralls.io/repos/LLLLinda/firstrade-cli/badge.svg
+[coveralls-url]: https://coveralls.io/r/LLLLinda/firstrade-cli
+

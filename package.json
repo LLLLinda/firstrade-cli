@@ -1,14 +1,41 @@
 {
   "name": "firstrade-cli",
   "version": "0.5.7",
-  "description": "An unofficial CLI tool for Firstrade",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "scripts": {
-    "test": "node ./test.js"
+  "description": "An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.",
+  "homepage": "https://github.com/LLLLinda/firstrade-cli#readme",
+  "author": {
+    "name": "LLLLinda",
+    "email": "lindacheung512@gmail.com"
   },
   "bin": {
     "firstrade": "./bin/firstrade"
+  },
+  "files": [
+    "lib"
+  ],
+  "types": "index.d.ts",
+  "main": "lib/index.js",
+  "keywords": [
+    "firstrade cli"
+  ],
+  "dependencies": {
+    "axios": "^0.21.1",
+    "axios-cookiejar-support": "^1.0.1",
+    "qs": "^6.9.6",
+    "tough-cookie": "^4.0.0",
+    "xml2js": "^0.4.23"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "coveralls": "^3.0.7",
+    "eslint": "^6.6.0",
+    "prettier": "^1.19.1",
+    "husky": "^3.0.9",
+    "lint-staged": "^9.4.3",
+    "eslint-config-prettier": "^6.6.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-config-xo": "^0.27.2",
+    "jest": "^26.1.0"
   },
   "repository": {
     "type": "git",
@@ -17,20 +44,46 @@
   "bugs": {
     "url": "https://github.com/LLLLinda/firstrade-cli/issues"
   },
-  "author": "Linda Cheung",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "axios": "^0.21.1",
-    "axios-cookiejar-support": "^1.0.1",
-    "qs": "^6.9.6",
-    "tough-cookie": "^4.0.0",
-    "xml2js": "^0.4.23"
+  "engines": {
+    "npm": ">= 4.0.0"
   },
-  "keywords": [
-    "cli",
-    "firstrade"
-  ],
-  "devDependencies": {
-    "dotenv": "^8.2.0"
-  }
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "eslintConfig": {
+    "extends": [
+      "xo",
+      "prettier"
+    ],
+    "env": {
+      "jest": true,
+      "node": true
+    },
+    "rules": {
+      "prettier/prettier": "error"
+    },
+    "plugins": [
+      "prettier"
+    ]
+  },
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "license": "Apache-2.0"
 }
