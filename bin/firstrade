@@ -19,8 +19,7 @@ argument:
     `;
     const re = /(?:--(\w+)="?(\S+)"?)/;
     const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "getSessionTimeLeft"].includes(x))
-    const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
-    const argument = Object.fromEntries(argumentFromLine)
+    let argument = readCredential(re);
     if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)
     } else {
@@ -32,3 +31,14 @@ argument:
             console.log(JSON.stringify(result))
     }
 })()
+
+function readCredential(re) {
+    const argument = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
+    let ret = Object.fromEntries(argument);
+    ret = Object.assign({
+        username: process.env.FIRSTRADE_USERNAME,
+        password: process.env.FIRSTRADE_PASSWORD,
+        pin: process.env.FIRSTRADE_PIN
+    }, ret);
+    return ret;
+}

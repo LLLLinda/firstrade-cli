@@ -1,14 +1,15 @@
 # Firstrade CLI tool
 
-# firstrade-cli [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+### An unofficial CLI tool for Firstrade
+
+An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.
+
+[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage percentage][coveralls-image]][coveralls-url]
+
 
 > DISCLAIMER: We disclaim any and all responsibility for losses incurred through the use of this information. By using this information, you are deemed to have accepted these conditions of use, and you agree NOT to sue us.
 >
 > CLARIFICATION: The above disclaimer states as plainly as possible that if you decide to make use of any of the information contained within this document that you do so at your own risk.
-
-### An unofficial CLI tool for Firstrade
-
-> An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.
 
 ## Installation and Usage
 
@@ -71,7 +72,7 @@ Apache-2.0
 
 [npm-image]: https://badge.fury.io/js/firstrade-cli.svg
 [npm-url]: https://npmjs.org/package/firstrade-cli
-[travis-image]: https://travis-ci.com/LLLLinda/firstrade-cli.svg?branch=master
-[travis-url]: https://travis-ci.com/LLLLinda/firstrade-cli
-[coveralls-image]: https://coveralls.io/repos/LLLLinda/firstrade-cli/badge.svg
-[coveralls-url]: https://coveralls.io/r/LLLLinda/firstrade-cli
+[travis-image]: https://travis-ci.com/LLLLinda/firstrade-cli.svg
+[travis-url]: https://travis-ci.com/github/LLLLinda/firstrade-cli
+[coveralls-image]: https://coveralls.io/repos/github/LLLLinda/firstrade-cli/badge.svg
+[coveralls-url]: https://coveralls.io/github/LLLLinda/firstrade-cli
