@@ -26,7 +26,7 @@ argument:
         const firstrade = require('../index.js')
         let result = await firstrade[command](argument)
         if (command == "login")
-            console.log(JSON.stringify(result).replace(/"/, `\\"`))
+            console.log(JSON.stringify(result).replace(/"/g, `\\"`))
         else
             console.log(JSON.stringify(result))
     }

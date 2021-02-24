@@ -4,6 +4,4 @@ node_js:
   - v14
   - v12
   - v10
-  - v8
-  - v6
 after_script: cat ./coverage/lcov.info | coveralls
