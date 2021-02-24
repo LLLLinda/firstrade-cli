@@ -9,6 +9,7 @@ command:
     getBalance
     getTradeHistory
     getPosition
+    getSessionTimeLeft
 
 argument:
     --username=username             (required)
@@ -16,8 +17,8 @@ argument:
     --pin=pin                       (required)
     --cookies=cookies               (optional)
     `;
-    const re = /(?:--(\w+)="?(\w+)"?)/;
-    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition"].includes(x))
+    const re = /(?:--(\w+)="?(\S+)"?)/;
+    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "getSessionTimeLeft"].includes(x))
     const argumentFromLine = process.argv.filter(x => re.test(x)).map(arg => (re.exec(arg) || []).splice(1, 2));
     const argument = Object.fromEntries(argumentFromLine)
     if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
@@ -25,6 +26,9 @@ argument:
     } else {
         const firstrade = require('../index.js')
         let result = await firstrade[command](argument)
-        console.log(JSON.stringify(result))
+        if (command == "login")
+            console.log(JSON.stringify(result).replace(/"/, `\\"`))
+        else
+            console.log(JSON.stringify(result))
     }
 })()

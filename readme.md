@@ -31,6 +31,8 @@ command:
     getBalance
     getTradeHistory
     getPosition
+    getSessionTimeLeft
+
 
 argument:
     --username=username             (required)
@@ -46,6 +48,7 @@ argument:
 * firstrade getBalance
 * firstrade getTradeHistory
 * firstrade getPosition
+* firstrade getSessionTimeLeft
 
 ## Debugging
 

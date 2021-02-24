@@ -19,7 +19,7 @@ declare namespace Firstrade {
         username: string;
         password: string;
         pin: string;
-    } | Cookie[];
+    } | { cookies: Cookie[] };
     type Balance = {
         totalValue: number;
         buyingpower: number;
