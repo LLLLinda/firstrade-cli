@@ -1,6 +1,6 @@
 {
   "name": "firstrade-cli",
-  "version": "0.5.8",
+  "version": "0.6.5",
   "description": "An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.",
   "homepage": "https://github.com/LLLLinda/firstrade-cli#readme",
   "author": {
@@ -11,10 +11,11 @@
     "firstrade": "./bin/firstrade"
   },
   "files": [
-    "lib"
+    "lib/*.js",
+    "index.d.ts"
   ],
   "types": "index.d.ts",
-  "main": "lib/index.js",
+  "main": "index.js",
   "keywords": [
     "firstrade cli"
   ],
