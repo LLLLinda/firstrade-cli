@@ -1,26 +1,28 @@
-
 declare class Firstrade {
     login(credential: Firstrade.Credential): Promise<Firstrade.Cookie | Firstrade.LoginReason>
     getBalance(credential: Firstrade.Credential): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.Credential): Promise<Firstrade.TradeRecord[]>
     getPosition(credential: Firstrade.Credential): Promise<Firstrade.Position[]>
+    getSessionTimeLeft(credential: Firstrade.Credential): Promise<number>
 }
 declare namespace Firstrade {
-    type Cookie = {
+    export const firstrade: Firstrade
+
+    export type Cookie = {
         key: string
         value: string
     }
-    type Order = {
+    export type Order = {
         symbol: string
         quantity: number
         price?: number
     }
-    type Credential = {
+    export type Credential = {
         username: string;
         password: string;
         pin: string;
     } | { cookies: Cookie[] };
-    type Balance = {
+    export type Balance = {
         totalValue: number;
         buyingpower: number;
         cashBuyingpower: number;
@@ -33,7 +35,7 @@ declare namespace Firstrade {
         cashBalance: number;
         moneyMarketFund: number;
     }
-    type TradeRecord = {
+    export type TradeRecord = {
         transaction: string
         duration: string
         status: string
@@ -41,7 +43,7 @@ declare namespace Firstrade {
         quantity: number
         price: number
     }
-    type Position = {
+    export type Position = {
         symbol: string
         quantity: number
         price: number
@@ -51,7 +53,7 @@ declare namespace Firstrade {
         vol: number
         type: string
     }
-    enum LoginReason {
+    export enum LoginReason {
         "This user has logged in from another computer",
         "Session has timed out",
         "Trader has already been disabled",

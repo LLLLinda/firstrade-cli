@@ -1,2 +1,7 @@
 "use strict";
-module.exports = require("./lib/firstrade.js");
+
+const firstrade = require("./lib/firstrade.js")
+
+module.exports = { firstrade };
+// Allow use of default import syntax in TypeScript
+module.exports.default = { firstrade };
