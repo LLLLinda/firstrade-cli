@@ -81,10 +81,11 @@
   },
   "scripts": {
     "pretest": "eslint .",
-    "test": "jest"
+    "test": "jest -i"
   },
   "jest": {
     "testEnvironment": "node",
+    "testTimeout": 30000,
     "collectCoverage": true,
     "coverageReporters": [
       "lcov"

@@ -24,7 +24,7 @@ argument:
     if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)
     } else {
-        const firstrade = require('../index.js')
+        const { firstrade } = require('../index')
         let result = await firstrade[command](argument)
         if (command == "login")
             console.log(JSON.stringify(result).replace(/"/g, `\\"`))
