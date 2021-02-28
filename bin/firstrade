@@ -10,6 +10,7 @@ command:
     getTradeHistory
     getPosition
     getSessionTimeLeft
+    getContact
 
 argument:
     --username=username             (required)
@@ -18,7 +19,7 @@ argument:
     --cookies=cookies               (optional)
     `;
     const re = /(?:--(\w+)="?(\S+)"?)/;
-    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "getSessionTimeLeft"].includes(x))
+    const command = process.argv.find(x => ["login", "getBalance", "getTradeHistory", "getPosition", "getSessionTimeLeft", "getContact"].includes(x))
     let argument = readCredential(re);
     if (command == null || process.argv.includes('-h') || process.argv.includes('--help')) {
         console.log(msg)

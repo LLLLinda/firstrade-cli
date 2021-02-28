@@ -6,7 +6,6 @@ An unofficial CLI tool for Firstrade. The CLI manages your stocks on Firstrade.
 
 [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage percentage][coveralls-image]][coveralls-url]
 
-
 > DISCLAIMER: We disclaim any and all responsibility for losses incurred through the use of this information. By using this information, you are deemed to have accepted these conditions of use, and you agree NOT to sue us.
 >
 > CLARIFICATION: The above disclaimer states as plainly as possible that if you decide to make use of any of the information contained within this document that you do so at your own risk.
@@ -33,6 +32,7 @@ command:
     getTradeHistory
     getPosition
     getSessionTimeLeft
+    getContact
 
 
 argument:
@@ -50,6 +50,7 @@ argument:
 * firstrade getTradeHistory
 * firstrade getPosition
 * firstrade getSessionTimeLeft
+* firstrade getContact
 
 ## Debugging
 
