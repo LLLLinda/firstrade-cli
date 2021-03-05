@@ -1,5 +1,5 @@
 declare class Firstrade {
-    login(credential: Firstrade.LoginContext): Promise<Firstrade.Cookie | Firstrade.LoginReason>
+    login(credential: Firstrade.LoginContext): Promise<Firstrade.Cookie[] | Firstrade.LoginReason>
     getBalance(credential: Firstrade.LoginContext): Promise<Firstrade.Balance>
     getTradeHistory(credential: Firstrade.LoginContext): Promise<Firstrade.TradeRecord[]>
     getPosition(credential: Firstrade.LoginContext): Promise<Firstrade.Position[]>
@@ -32,7 +32,7 @@ declare namespace Firstrade {
         price?: number
     }
 
-    export type LoginContext = Credential | { cookies: Cookie[] };
+    export type LoginContext = Credential | { cookies: Cookie[] } | Cookie[];
 
     export type Balance = {
         totalValue: number;
